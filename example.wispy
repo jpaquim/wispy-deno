@@ -1,0 +1,6 @@
+(fn fib:i32 [val:i32]
+  (if (lt_i32 val 2)
+    val
+    (add_i32 (fib (sub_i32 val 1)) (fib (sub_i32 val 2)))))
+
+(fn main:i32 [] (fib 15))
