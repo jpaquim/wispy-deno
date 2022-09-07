@@ -14,7 +14,7 @@ import {
   TypedIdentifierToken,
 } from './types/mod.ts';
 
-export const parse = (tokens: Token[]): BlockNode => {
+export function parse(tokens: Token[]): BlockNode {
   const blocks: BlockNode[] = [];
 
   // This loop is run as long as there are tokens to consume
@@ -31,17 +31,17 @@ export const parse = (tokens: Token[]): BlockNode => {
     type: 'block',
     expressions: blocks,
   };
-};
+}
 
-const parseBlock = (block: TokenTree): BlockNode => {
+function parseBlock(block: TokenTree): BlockNode {
   return {
     type: 'block',
     // This is where the recursive magic happens
     expressions: block.map(parseExpression),
   };
-};
+}
 
-const parseExpression = (expression?: TokenTree | NonBracketToken): AstNode => {
+function parseExpression(expression?: TokenTree | NonBracketToken): AstNode {
   // If the expression is an Array, we were passed another TokenTree, so we can
   // pass the expression back to the parseBlock function
   if (expression instanceof Array) {
@@ -57,22 +57,22 @@ const parseExpression = (expression?: TokenTree | NonBracketToken): AstNode => {
   if (isTokenType(expression, 'int')) return parseIntToken(expression);
 
   throw new Error(`Unrecognized expression ${JSON.stringify(expression)}`);
-};
+}
 
 const parseFloatToken = (float: FloatToken): FloatNode => ({ ...float });
 
 const parseIntToken = (int: IntToken): IntNode => ({ ...int });
 
-const parseIdentifier = (identifier: IdentifierToken): IdentifierNode => {
+function parseIdentifier(identifier: IdentifierToken): IdentifierNode {
   return {
     type: 'identifier',
     identifier: identifier.value,
   };
-};
+}
 
-const parseTypedIdentifier = (
+function parseTypedIdentifier(
   identifier: TypedIdentifierToken,
-): TypedIdentifierNode => {
+): TypedIdentifierNode {
   const vals = identifier.value.split(':');
 
   return {
@@ -80,9 +80,9 @@ const parseTypedIdentifier = (
     identifier: vals[0],
     typeIdentifier: vals[1],
   };
-};
+}
 
-const consumeTokenTree = (tokens: Token[]): TokenTree => {
+function consumeTokenTree(tokens: Token[]): TokenTree {
   const tree: TokenTree = [];
 
   // Ensures the first token is a left bracket and then discards it, defined below this function.
@@ -116,9 +116,9 @@ const consumeTokenTree = (tokens: Token[]): TokenTree => {
 
   // Return the tree. Don't forget to check out the helper functions below!
   return tree;
-};
+}
 
-const consumeLeftBracket = (tokens: Token[]) => {
+function consumeLeftBracket(tokens: Token[]) {
   const bracketDirection = getBracketDirection(tokens[0]);
 
   if (bracketDirection !== 'left') {
@@ -126,9 +126,9 @@ const consumeLeftBracket = (tokens: Token[]) => {
   }
 
   return tokens.shift();
-};
+}
 
-const getBracketDirection = (token: Token): 'left' | 'right' => {
+function getBracketDirection(token: Token): 'left' | 'right' {
   if (token.type !== 'bracket') {
     throw new Error(`Expected bracket, got ${token.type}`);
   }
@@ -138,17 +138,15 @@ const getBracketDirection = (token: Token): 'left' | 'right' => {
 
   // Otherwise return right
   return 'right';
-};
+}
 
-export const isTokenType = <T extends Token['type']>(
+export function isTokenType<T extends Token['type']>(
   item: TokenTree | NonBracketToken | undefined,
   type: T,
-): item is Extract<Token, { type: T }> => {
+): item is Extract<Token, { type: T }> {
   return isToken(item) && item.type === type;
-};
+}
 
-const isToken = (
-  item?: TokenTree | NonBracketToken,
-): item is NonBracketToken => {
+function isToken(item?: TokenTree | NonBracketToken): item is NonBracketToken {
   return !(item instanceof Array);
-};
+}

@@ -1,7 +1,7 @@
 import { binaryen } from './deps.ts';
 import { AstNode, BlockNode, IdentifierNode } from './types/ast.ts';
 
-export const compile = (block: BlockNode): binaryen.Module => {
+export function compile(block: BlockNode): binaryen.Module {
   // Creates a new binaryen module that our helper functions will fill in
   const mod = new binaryen.Module();
 
@@ -23,7 +23,7 @@ export const compile = (block: BlockNode): binaryen.Module => {
 
   // Finally, we return the binaryen module
   return mod;
-};
+}
 
 interface CompileExpressionOpts {
   expression: AstNode;
@@ -32,7 +32,7 @@ interface CompileExpressionOpts {
   functionMap: FunctionMap;
 }
 
-const compileExpression = (opts: CompileExpressionOpts): number => {
+function compileExpression(opts: CompileExpressionOpts): number {
   // Grab the expression and the binaryen module (mod) from the options.
   // The other fields are used by child function calls
   const { expression, mod } = opts;
@@ -51,13 +51,13 @@ const compileExpression = (opts: CompileExpressionOpts): number => {
 
   // Throw a helpful error message if we don't recognize the expression
   throw new Error(`Unrecognized expression ${expression.type}`);
-};
+}
 
 interface CompileBlockOpts extends CompileExpressionOpts {
   expression: BlockNode;
 }
 
-const compileBlock = (opts: CompileBlockOpts): number => {
+function compileBlock(opts: CompileBlockOpts): number {
   // We re-map the expression field to block here for clarity.
   const { expression: block, mod } = opts;
 
@@ -84,10 +84,10 @@ const compileBlock = (opts: CompileBlockOpts): number => {
   // pass `auto` as the type since binaryen is smart enough to determine the return type
   // of blocks automatically.
   return mod.block(null, expressions, binaryen.auto);
-};
+}
 
 // Because function calls are blocks, we can re-use CompileBlockOpts
-const compileFunctionCall = (opts: CompileBlockOpts): number => {
+function compileFunctionCall(opts: CompileBlockOpts): number {
   const { expression, functionMap, mod } = opts;
   // The first expression of a function call is the functions identifier
   const identifierNode = expression.expressions[0];
@@ -125,9 +125,9 @@ const compileFunctionCall = (opts: CompileBlockOpts): number => {
   // is the functions identifier, the second are the compiled parameter expression,
   // and the third is the return type which has already been determined by generateFunctionMap
   return mod.call(identifier, args, functionInfo.returnType);
-};
+}
 
-const compileFunction = (opts: CompileBlockOpts): number => {
+function compileFunction(opts: CompileBlockOpts): number {
   const { expression: block, mod } = opts;
 
   assertFn(block);
@@ -169,13 +169,13 @@ const compileFunction = (opts: CompileBlockOpts): number => {
   // body, we need to return an expression pointer. For this, we just return a nop (do nothing instruction),
   // to make things consistent.
   return mod.nop();
-};
+}
 
 interface CompileIdentifierOpts extends CompileExpressionOpts {
   expression: IdentifierNode;
 }
 
-const compileIdentifier = (opts: CompileIdentifierOpts): number => {
+function compileIdentifier(opts: CompileIdentifierOpts): number {
   // We remap expression to node to keep our lines a little shorter
   const { expression: node, parameters, mod } = opts;
 
@@ -191,13 +191,13 @@ const compileIdentifier = (opts: CompileIdentifierOpts): number => {
   // Binaryen needs to know the parameters index and type. We'll get into
   // the index when we define our parameter mapping function.
   return mod.local.get(info.index, info.type);
-};
+}
 
 // A map where the key is the parameter identifier and the value is the important information
 // required by binaryen to fetch the parameter down the line
 type ParameterMap = Map<string, { index: number; type: number }>;
 
-const getFunctionParameters = (block: BlockNode) => {
+function getFunctionParameters(block: BlockNode) {
   // The parameters are defined in the third expression of the function definition
   const node = block.expressions[2];
 
@@ -254,9 +254,9 @@ const getFunctionParameters = (block: BlockNode) => {
     // is a reason for this, but I don't know what that reason is.
     parameterTypes: binaryen.createType(types),
   };
-};
+}
 
-const getFunctionIdentifier = (block: BlockNode) => {
+function getFunctionIdentifier(block: BlockNode) {
   // Grab the second expression
   const node = block.expressions[1];
 
@@ -271,9 +271,9 @@ const getFunctionIdentifier = (block: BlockNode) => {
     // We have to map the return type to a type binaryen understands.
     returnType: mapBinaryenType(node.typeIdentifier),
   };
-};
+}
 
-const compileIf = (opts: CompileBlockOpts): number => {
+function compileIf(opts: CompileBlockOpts): number {
   const { expression, mod } = opts;
 
   // The first expression, expression.expressions[0], is the "if" identifier, we don't need
@@ -302,9 +302,9 @@ const compileIf = (opts: CompileBlockOpts): number => {
 
   // Finally we use binaryen to compile the if expression
   return mod.if(condition, ifTrue, ifFalse);
-};
+}
 
-const registerStandardFunctions = (mod: binaryen.Module, map: FunctionMap) => {
+function registerStandardFunctions(mod: binaryen.Module, map: FunctionMap) {
   const { i32, f32 } = binaryen;
   const { i32: i32m, f32: f32m } = mod;
   const common = { mod, map };
@@ -386,15 +386,15 @@ const registerStandardFunctions = (mod: binaryen.Module, map: FunctionMap) => {
     operator: f32m.div,
     ...common,
   });
-};
+}
 
-const registerMathFunction = (opts: {
+function registerMathFunction(opts: {
   mod: binaryen.Module;
   name: string;
   type: number;
   operator: (left: number, right: number) => number;
   map: FunctionMap;
-}) => {
+}) {
   const { mod, name, type, operator, map } = opts;
   return registerBinaryFunction({
     mod,
@@ -404,15 +404,15 @@ const registerMathFunction = (opts: {
     operator,
     map,
   });
-};
+}
 
-const registerLogicFunction = (opts: {
+function registerLogicFunction(opts: {
   mod: binaryen.Module;
   name: string;
   type: number;
   operator: (left: number, right: number) => number;
   map: FunctionMap;
-}) => {
+}) {
   const { mod, name, type, operator, map } = opts;
   return registerBinaryFunction({
     mod,
@@ -422,16 +422,16 @@ const registerLogicFunction = (opts: {
     operator,
     map,
   });
-};
+}
 
-const registerBinaryFunction = (opts: {
+function registerBinaryFunction(opts: {
   mod: binaryen.Module;
   name: string;
   paramType: number;
   returnType: number;
   operator: (left: number, right: number) => number;
   map: FunctionMap;
-}) => {
+}) {
   const { mod, name, paramType, returnType, operator, map } = opts;
   mod.addFunction(
     name,
@@ -445,12 +445,12 @@ const registerBinaryFunction = (opts: {
     ),
   );
   map.set(name, { returnType });
-};
+}
 
 // Function name, Function info
 type FunctionMap = Map<string, { returnType: number }>;
 
-const generateFunctionMap = (block: BlockNode): FunctionMap => {
+function generateFunctionMap(block: BlockNode): FunctionMap {
   // Preview the first node (i.e. expression) of the block
   const firstNode = block.expressions[0];
 
@@ -485,13 +485,13 @@ const generateFunctionMap = (block: BlockNode): FunctionMap => {
     // We can ignore all other expression
     return map;
   }, new Map());
-};
+}
 
-const mapBinaryenType = (typeIdentifier: string): binaryen.Type => {
+function mapBinaryenType(typeIdentifier: string): binaryen.Type {
   if (typeIdentifier === 'i32') return binaryen.i32;
   if (typeIdentifier === 'f32') return binaryen.f32;
   throw new Error(`Unsupported type ${typeIdentifier}`);
-};
+}
 
 function assertFn(block: unknown): asserts block is BlockNode {
   if (!isNodeType(block, 'block')) {
@@ -503,10 +503,10 @@ function assertFn(block: unknown): asserts block is BlockNode {
   throw new Error('Expected function definition expression');
 }
 
-export const isNodeType = <T extends AstNode['type']>(
+export function isNodeType<T extends AstNode['type']>(
   item: unknown,
   type: T,
-): item is Extract<AstNode, { type: T }> => {
+): item is Extract<AstNode, { type: T }> {
   return (
     // Ensure the type exists
     !!item &&
@@ -517,4 +517,4 @@ export const isNodeType = <T extends AstNode['type']>(
     // the type we were looking for.
     (item as Record<string, unknown>)['type'] === type
   );
-};
+}

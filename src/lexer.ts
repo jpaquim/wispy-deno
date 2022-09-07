@@ -1,6 +1,6 @@
 import { Bracket, Token } from './types/mod.ts';
 
-export const lex = (input: string): Token[] => {
+export function lex(input: string): Token[] {
   const chars = input
     // Remove any leading or trailing whitespace for simplicity
     .trim()
@@ -27,9 +27,9 @@ export const lex = (input: string): Token[] => {
 
   // Return the tokens
   return tokens;
-};
+}
 
-const consumeNextWord = (chars: string[]): string | undefined => {
+function consumeNextWord(chars: string[]): string | undefined {
   const token: string[] = [];
 
   while (chars.length) {
@@ -65,9 +65,9 @@ const consumeNextWord = (chars: string[]): string | undefined => {
   // If we have characters for our token, join them into a single word. Otherwise, return undefined to signal to the lexer
   // that we are finished processing tokens.
   return token.length ? token.join('') : undefined;
-};
+}
 
-const identifyToken = (word: string): Token => {
+function identifyToken(word: string): Token {
   if (isInt(word)) return { type: 'int', value: parseInt(word) };
   if (isFloat(word)) return { type: 'float', value: parseFloat(word) };
   if (isIdentifier(word)) return { type: 'identifier', value: word };
@@ -75,7 +75,7 @@ const identifyToken = (word: string): Token => {
   if (isTypedIdentifier(word)) return { type: 'typed-identifier', value: word };
 
   throw new Error(`Unknown token: ${word}`);
-};
+}
 
 const isInt = (word: string) => /^[0-9]+$/.test(word);
 
