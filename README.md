@@ -1,5 +1,7 @@
 # wispy
 
+[wispy](https://github.com/drew-y/wispy) in Deno.
+
 ## Running the example code
 
 ```sh
