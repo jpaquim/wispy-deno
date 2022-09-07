@@ -19,10 +19,10 @@ export const parse = (tokens: Token[]): BlockNode => {
 
   // This loop is run as long as there are tokens to consume
   while (tokens.length) {
-    // consumeTokenTree converts an array of tokens into a tree of tokens, more on that later.
+    // consumeTokenTree converts an array of tokens into a tree of tokens
     const tree = consumeTokenTree(tokens);
 
-    // parseBlock turns our new tree of tokens into an actual BlockNode, recursively. More on that later as well.
+    // parseBlock turns our new tree of tokens into an actual BlockNode, recursively
     blocks.push(parseBlock(tree));
   }
 

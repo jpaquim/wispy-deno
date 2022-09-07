@@ -3,5 +3,5 @@
 ## Running the example code
 
 ```sh
-deno run --allow-read=. src/mod.ts example.wispy
+deno run --allow-env=NODE_DEBUG --allow-read=. src/mod.ts example.wispy
 ```

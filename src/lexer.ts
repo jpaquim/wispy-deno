@@ -14,12 +14,12 @@ export const lex = (input: string): Token[] => {
   while (chars.length) {
     // Here, a word is an unidentified token. It is usually any single group of non-whitespace
     // characters such as 123 or 123.4 or im_a_function
-    const word = consumeNextWord(chars); // We'll define this function later
+    const word = consumeNextWord(chars);
 
     // We ran out of tokens. Break out of the loop.
     if (word === undefined) break;
 
-    const token = identifyToken(word); // We'll define this function later
+    const token = identifyToken(word);
 
     // Add the token to our store
     tokens.push(token);
@@ -39,7 +39,7 @@ const consumeNextWord = (chars: string[]): string | undefined => {
     // No more characters to read
     if (char === undefined) break;
 
-    // Whitespace characters terminate the token (we'll define the isWhitespace function later)
+    // Whitespace characters terminate the token
     if (isWhitespace(char) && token.length) {
       chars.shift(); // Remove the whitespace so it doesn't get included in the next token
       break;
@@ -51,7 +51,7 @@ const consumeNextWord = (chars: string[]): string | undefined => {
       continue;
     }
 
-    // Terminator tokens signify the end of the current token (if any). (we'll define the isTerminatorToken function later)
+    // Terminator tokens signify the end of the current token (if any).
     if (isTerminatorToken(char) && token.length) break;
 
     // Add the character to the token and discard it from the input
